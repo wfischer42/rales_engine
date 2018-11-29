@@ -1,3 +1,6 @@
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/wfischer42/rales_engine.svg?columns=all)](https://waffle.io/wfischer42/rales_engine)
+
+
 ```
 rake csvmodel:import["Merchant Customer Invoice Item InvoiceItem Transaction"]
 ```
