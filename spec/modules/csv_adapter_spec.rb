@@ -14,7 +14,17 @@ describe CSVAdapter do
         described_class.import(models: [Merchant, Customer])
         expect(Merchant.count).to eq(100)
       end
+      it 'does not accept invalid models' do
+        class NotAModel; end
+        invalid = NotAModel
+        expect { described_class.import(models: [invalid]) }
+          .to output("#{invalid} is not a valid model and will not be imported.\n").to_stdout
+
+        # Teardown so "NotAModel" doesn't exist, in case of testing elsewhere
+        Object.send(:remove_const, :NotAModel)
+      end
     end
+
     describe '#import_file' do
       it 'creates new entries for a single file' do
         described_class.import_file('./data/merchants.csv', Merchant)
