@@ -1,13 +1,14 @@
 require 'csv'
+require 'active_support/inflector'
 
 module CSVAdapter
   def self.import(models:, path: './data/')
     models.each do |model|
       if model.class == Class && model.superclass == ApplicationRecord
-        file = path + model.to_s.downcase.pluralize + '.csv'
+        file = path + model.to_s.underscore.pluralize + '.csv'
         self.import_file(file, model)
       else
-        puts "#{model} is not defined and will not be imported."
+        puts "#{model} is not a valid model and will not be imported."
       end
     end
   end

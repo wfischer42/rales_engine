@@ -1,3 +1,15 @@
+```
+rake csvmodel:import["Merchant Customer Invoice Item InvoiceItem Transaction"]
+```
+
+```
+Customer.where(id: Invoice.where("merchant_id = ?", mid)
+                          .left_outer_joins(:transactions)
+                          .group(:id)
+                          .having("sum(COALESCE(transactions.result,0)) = 0")
+                          .pluck("invoices.customer_id"))
+```
+
 # README
 
 This README would normally document whatever steps are necessary to get the
