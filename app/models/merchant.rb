@@ -48,8 +48,19 @@ class Merchant < ApplicationRecord
     bod = date + " 00:00:00"
     eod = date + " 23:59:59"
     Invoice.where('invoices.created_at > ? AND invoices.created_at < ?',
-                  bod,
-                  eod )
+                  bod, eod )
+           .joins(:transactions)
+           .merge(Transaction.success)
+           .joins(:invoice_items)
+           .sum('invoice_items.unit_price * invoice_items.quantity')
+  end
+
+  def self.merchant_revenue_on_date(merchant_id, date)
+    bod = date + " 00:00:00"
+    eod = date + " 23:59:59"
+    Invoice.where('invoices.created_at > ? AND invoices.created_at < ?',
+                  bod, eod )
+           .where(merchant_id: merchant_id)
            .joins(:transactions)
            .merge(Transaction.success)
            .joins(:invoice_items)

@@ -5,6 +5,7 @@ RSpec.describe Merchant, type: :model do
   it { is_expected.to have_many(:items) }
   it { is_expected.to have_many(:invoice_items).through(:invoices) }
 
+  # GET /api/v1/merchants/:id/revenue returns the total revenue for that merchant across successful transactions
   describe "Instance Methods" do
     describe ".revenue" do
       it "returns a merchant's total revenue" do
@@ -76,7 +77,7 @@ RSpec.describe Merchant, type: :model do
   end
 
   describe "Class Methods" do
-    describe "#with_most_revenue" do
+    describe "#with_most_revenue(quantity)" do
       it "returns the x merchants with the most revenue" do
         merchants = create_list(:merchant, 2)
         inv_item_1 = create(:invoice_item, unit_price: 10, quantity: 2,
@@ -120,7 +121,7 @@ RSpec.describe Merchant, type: :model do
       end
     end
 
-    describe "#with_most_items_sold" do
+    describe "#with_most_items_sold(quantity)" do
       it "returns the x merchants with the most items sold (in units)" do
         merchants = create_list(:merchant, 2)
         inv_item_1 = create(:invoice_item, quantity: 2,
@@ -165,7 +166,7 @@ RSpec.describe Merchant, type: :model do
       end
     end
 
-    describe "#revenue_on_date" do
+    describe "#revenue_on_date(date)" do
       it "returns the total revene by all merchants on x date" do
         create(:invoice_item, unit_price: 12, quantity: 7,
                               trans_result: :success,
@@ -210,5 +211,81 @@ RSpec.describe Merchant, type: :model do
         expect(revenue).to eq(9 * 13)
       end
     end
+
+    describe "#merchant_revenue_on_date(merchant_id, date)" do
+      # GET /api/v1/merchants/:id/revenue?date=x returns the total revenue for that merchant for a specific invoice date x
+      it "returns the total revene by selected merchants on x date" do
+        merchant = create(:merchant)
+        create(:invoice_item, unit_price: 12, quantity: 7,
+                              trans_result: :success,
+                              created_at: '2012-02-17 08:13:09',
+                              merchant: merchant)
+
+        revenue = Merchant.merchant_revenue_on_date(merchant.id, '2012-02-17')
+
+        expect(revenue).to eq((12 * 7))
+      end
+
+      it "doesn't include pending invoices in calculations" do
+        merchant = create(:merchant)
+        create(:invoice_item, unit_price: 12, quantity: 7,
+                              trans_result: :success,
+                              created_at: '2012-02-17 12:00:00',
+                              merchant: merchant)
+        create(:invoice_item, unit_price: 9, quantity: 13,
+                              trans_result: :failed,
+                              created_at: '2012-02-17 12:00:00',
+                              merchant: merchant)
+        create(:invoice_item, unit_price: 142, quantity: 8,
+                              trans_result: nil,
+                              created_at: '2012-02-17 12:00:00',
+                              merchant: merchant)
+
+        revenue = Merchant.merchant_revenue_on_date(merchant.id, '2012-02-17')
+
+        expect(revenue).to eq(12 * 7)
+      end
+
+      it "doesn't include invoices from different dates" do
+        date_1 = '2012-02-17'
+        date_2 = '2012-02-18'
+        merchant = create(:merchant)
+        create(:invoice_item, unit_price: 12, quantity: 7,
+                              trans_result: :success,
+                              created_at: date_1 + ' 12:00:00',
+                              merchant: merchant)
+        create(:invoice_item, unit_price: 9, quantity: 13,
+                              trans_result: :success,
+                              created_at: date_2 + ' 12:00:00',
+                              merchant: merchant)
+
+        revenue = Merchant.merchant_revenue_on_date(merchant.id, date_2)
+
+        expect(revenue).to eq(9 * 13)
+      end
+
+      it "doesn't include invoices from different merchants" do
+        merchant_1 = create(:merchant)
+        merchant_2 = create(:merchant)
+        create(:invoice_item, unit_price: 12, quantity: 7,
+                              trans_result: :success,
+                              created_at: '2012-02-17 12:00:00',
+                              merchant: merchant_1)
+        create(:invoice_item, unit_price: 9, quantity: 13,
+                              trans_result: :success,
+                              created_at: '2012-02-17 12:00:00',
+                              merchant: merchant_2)
+
+        revenue = Merchant.merchant_revenue_on_date(merchant_1.id, '2012-02-17')
+
+        expect(revenue).to eq(12 * 7)
+      end
+    end
+
+    describe "#favorite_customer" do
+      # GET /api/v1/merchants/:id/favorite_customer returns the customer who has conducted the most total number of successful transactions.
+    end
+    # BOSS MODE: GET /api/v1/merchants/:id/customers_with_pending_invoices returns a collection of customers which have pending (unpaid) invoices. A pending invoice has no transactions with a result of success. This means all transactions are failed. Postgres has an EXCEPT operator that might be useful. ActiveRecord also has a find_by_sql that might help.
+    describe "#"
   end
 end
