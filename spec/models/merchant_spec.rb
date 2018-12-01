@@ -265,27 +265,42 @@ RSpec.describe Merchant, type: :model do
       end
 
       it "doesn't include invoices from different merchants" do
-        merchant_1 = create(:merchant)
-        merchant_2 = create(:merchant)
+        date = '2012-02-17'
+        datetime = date + ' 12:00:00'
+        merchants = create_list(:merchant, 2)
         create(:invoice_item, unit_price: 12, quantity: 7,
                               trans_result: :success,
-                              created_at: '2012-02-17 12:00:00',
-                              merchant: merchant_1)
+                              created_at: datetime,
+                              merchant: merchants[0])
         create(:invoice_item, unit_price: 9, quantity: 13,
                               trans_result: :success,
-                              created_at: '2012-02-17 12:00:00',
-                              merchant: merchant_2)
+                              created_at: datetime,
+                              merchant: merchants[1])
 
-        revenue = Merchant.merchant_revenue_on_date(merchant_1.id, '2012-02-17')
+        revenue = Merchant.merchant_revenue_on_date(merchants[0].id, date)
 
         expect(revenue).to eq(12 * 7)
       end
     end
 
     describe "#favorite_customer" do
-      # GET /api/v1/merchants/:id/favorite_customer returns the customer who has conducted the most total number of successful transactions.
+      it "returns customer with most successful transactions for merchant" do
+        merchant = create(:merchant)
+        customers = create_list(:customer, 2)
+        create(:invoice_item, trans_result: :success,
+                              merchant: merchant,
+                              customer: customers[0])
+        create(:invoice_item, trans_result: :failed,
+                              merchant: merchant,
+                              customer: customers[0])
+        create_list(:invoice_item, 2, trans_result: :success,
+                                      merchant: merchant,
+                                      customer: customers[1])
+        favorite = Merchant.merchant_favorite_customer(merchant.id)
+
+        expect(favorite).to eq(customers[1])
+      end
     end
     # BOSS MODE: GET /api/v1/merchants/:id/customers_with_pending_invoices returns a collection of customers which have pending (unpaid) invoices. A pending invoice has no transactions with a result of success. This means all transactions are failed. Postgres has an EXCEPT operator that might be useful. ActiveRecord also has a find_by_sql that might help.
-    describe "#"
   end
 end

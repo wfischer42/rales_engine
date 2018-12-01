@@ -9,11 +9,13 @@ describe CSVAdapter do
         expect(Merchant.first.name).to eq("Schroeder-Jerde")
         expect(Merchant.last.name).to eq("Wisozk, Hoeger and Bosco")
       end
+      
       it 'does not duplicate or overwrite entries' do
         described_class.import(models: [Merchant])
         described_class.import(models: [Merchant])
         expect(Merchant.count).to eq(100)
       end
+
       it 'does not accept invalid models' do
         class NotAModel; end
         invalid = NotAModel
