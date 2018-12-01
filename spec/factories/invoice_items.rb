@@ -1,21 +1,21 @@
 FactoryBot.define do
   factory :invoice_item do
-
-    transient { merchant { create(:merchant) } }
+    transient do
+      merchant { create(:merchant) }
+      trans_result { nil }
+    end
 
     item { create(:item, merchant: merchant) }
-    invoice { create(:invoice, merchant: merchant) }
+    invoice { create(:invoice, merchant: merchant, created_at: created_at) }
 
     quantity { 1 }
     unit_price { 1 }
 
-    factory :invoice_item_chain do
-
-      transient { merchant { Merchant.all.sample } }
-
-      quantity { rand(1..10) }
-      unit_price { rand(1..10) }
-
+    after(:create) do |invoice_item, evaluator|
+      result = evaluator.trans_result
+      if result
+        create(:transaction, invoice: invoice_item.invoice, result: result)
+      end
     end
   end
 end
