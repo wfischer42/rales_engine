@@ -76,7 +76,7 @@ class Merchant < ApplicationRecord
   end
 
   def self.merchant_favorite_customer(merchant_id)
-    a = Customer.select("customers.*, COUNT(transactions) AS successful")
+    Customer.select("customers.*, COUNT(transactions) AS successful")
             .joins(invoices: :transactions)
             .merge(Transaction.success)
             .where(invoices: {merchant_id: merchant_id})
