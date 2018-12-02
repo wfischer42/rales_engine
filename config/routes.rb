@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
+      namespace :customers do
+        get ':id/favorite_merchants', to: 'favorite_merchants#show'
+      end
       namespace :merchants do
         get 'most_revenue', to: 'most_revenue#index'
         get 'most_items', to: 'most_items#index'
