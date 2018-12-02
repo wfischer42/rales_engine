@@ -20,6 +20,14 @@ class Merchant < ApplicationRecord
         .sum('quantity')
   end
 
+  def self.merchant_revenue(id)
+    Invoice.joins(:transactions)
+           .joins(:invoice_items)
+           .where(transactions: {result: :success})
+           .where(merchant_id: id)
+           .sum('unit_price * quantity')
+  end
+
   def self.with_most_revenue(quantity)
     Merchant.unscoped
             .select('merchants.*, sum(unit_price * quantity) AS revenue')
@@ -68,6 +76,21 @@ class Merchant < ApplicationRecord
   end
 
   def self.merchant_favorite_customer(merchant_id)
-    Customer.select("customers.*, COUNT(transactions) AS successful_transactions").joins(invoices: :transactions).merge(Transaction.success).where(invoices: {merchant_id: merchant_id}).group(:id).order("successful_transactions DESC").limit(1).first
+    a = Customer.select("customers.*, COUNT(transactions) AS successful")
+            .joins(invoices: :transactions)
+            .merge(Transaction.success)
+            .where(invoices: {merchant_id: merchant_id})
+            .group(:id)
+            .order("successful DESC")
+            .limit(1)
+            .first
+  end
+
+  def self.customers_with_pending_invoices(merchant_id)
+    Customer.where(id: Invoice.where("merchant_id = ?", merchant_id)
+                              .left_outer_joins(:transactions)
+                              .group(:id)
+                              .having("sum(COALESCE(transactions.result,0)) = 0")
+                              .pluck("invoices.customer_id"))
   end
 end

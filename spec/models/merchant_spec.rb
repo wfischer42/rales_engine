@@ -5,7 +5,6 @@ RSpec.describe Merchant, type: :model do
   it { is_expected.to have_many(:items) }
   it { is_expected.to have_many(:invoice_items).through(:invoices) }
 
-  # GET /api/v1/merchants/:id/revenue returns the total revenue for that merchant across successful transactions
   describe "Instance Methods" do
     describe ".revenue" do
       it "returns a merchant's total revenue" do
@@ -77,6 +76,41 @@ RSpec.describe Merchant, type: :model do
   end
 
   describe "Class Methods" do
+    describe "#merchant_revenue" do
+      it "returns a merchant's total revenue" do
+        merchant = create(:merchant)
+        inv_item_1 = create(:invoice_item, merchant:     merchant,
+                                           unit_price:   1111,
+                                           quantity:     3,
+                                           trans_result: :success)
+        inv_item_2 = create(:invoice_item, merchant:     merchant,
+                                           unit_price:   2222,
+                                           quantity:     1,
+                                           trans_result: :success)
+
+        expect(Merchant.merchant_revenue(merchant.id)).to eq(5555)
+      end
+
+      it "doesn't include pending invoices in total revenue" do
+        merchant = create(:merchant)
+        inv_item_1 = create(:invoice_item, merchant: merchant,
+                                           trans_result: :failed)
+        inv_item_2 = create(:invoice_item, merchant: merchant,
+                                           trans_result: nil)
+
+        expect(Merchant.merchant_revenue(merchant.id)).to eq(0)
+      end
+
+      it "doesn't include other merchant's invoices in revenue" do
+        merchant_1 = create(:merchant)
+        merchant_2 = create(:merchant)
+        inv_item = create(:invoice_item, merchant: merchant_2,
+                                         trans_result: :success)
+
+        expect(Merchant.merchant_revenue(merchant_1.id)).to eq(0)
+      end
+    end
+
     describe "#with_most_revenue(quantity)" do
       it "returns the x merchants with the most revenue" do
         merchants = create_list(:merchant, 2)
@@ -213,7 +247,6 @@ RSpec.describe Merchant, type: :model do
     end
 
     describe "#merchant_revenue_on_date(merchant_id, date)" do
-      # GET /api/v1/merchants/:id/revenue?date=x returns the total revenue for that merchant for a specific invoice date x
       it "returns the total revene by selected merchants on x date" do
         merchant = create(:merchant)
         create(:invoice_item, unit_price: 12, quantity: 7,
@@ -278,12 +311,11 @@ RSpec.describe Merchant, type: :model do
                               merchant: merchants[1])
 
         revenue = Merchant.merchant_revenue_on_date(merchants[0].id, date)
-
         expect(revenue).to eq(12 * 7)
       end
     end
 
-    describe "#favorite_customer" do
+    describe "#favorite_customer(merchant_id)" do
       it "returns customer with most successful transactions for merchant" do
         merchant = create(:merchant)
         customers = create_list(:customer, 2)
@@ -301,6 +333,43 @@ RSpec.describe Merchant, type: :model do
         expect(favorite).to eq(customers[1])
       end
     end
-    # BOSS MODE: GET /api/v1/merchants/:id/customers_with_pending_invoices returns a collection of customers which have pending (unpaid) invoices. A pending invoice has no transactions with a result of success. This means all transactions are failed. Postgres has an EXCEPT operator that might be useful. ActiveRecord also has a find_by_sql that might help.
+
+    describe "#merchant_customers_with_pending_invoices(merchant_id)" do
+      it "returns a list of customers with pending invoices for a merchant" do
+        merchant = create(:merchant)
+        customers = create_list(:customer, 2)
+
+        create(:invoice_item, trans_result: :success,
+                              merchant: merchant,
+                              customer: customers[0])
+        create(:invoice_item, trans_result: :failed,
+                              merchant: merchant,
+                              customer: customers[1])
+        create(:invoice_item, trans_result: nil,
+                              merchant: merchant,
+                              customer: customers[1])
+
+        pending_cust = Merchant.customers_with_pending_invoices(merchant.id)
+
+        expect(pending_cust).to eq([customers[1]])
+      end
+
+      it "doesn't count pending invoices for other merchants" do
+        merchants = create_list(:merchant, 2)
+        customers = create_list(:customer, 2)
+        create(:invoice_item, trans_result: :success,
+                              merchant: merchants[0],
+                              customer: customers[0])
+        create(:invoice_item, trans_result: nil,
+                              merchant: merchants[0],
+                              customer: customers[1])
+        create(:invoice_item, trans_result: nil,
+                              merchant: merchants[1],
+                              customer: customers[0])
+
+        pending_cust = Merchant.customers_with_pending_invoices(merchants[0].id)
+        expect(pending_cust).to eq([customers[1]])
+      end
+    end
   end
 end
