@@ -22,35 +22,37 @@ rake csvmodel:import["Merchant Customer Invoice Item InvoiceItem Transaction"]
 After setup is complete, run `Rails s` to use the API endpoints locally.
 
 ### Endpoints
-All endpoints descend from the `api/v1/` path. Here's a full path example
+All endpoints descend from the `api/v1/` path. Here's a full path example:
 ```
 http://localhost:3000/api/v1/items/12/best_day
 ```
 
-The API provides the following endpoints
+The API provides the following endpoints:
 ```
 'Merchant' Endpoints
 
 api/v1/merchants
 api/v1/merchants/:id
-api/v1/most_revenue
-api/v1/most_items
-api/v1/revenue
-api/v1/:id/revenue
-api/v1/:id/favorite_customer
-api/v1/:id/customers_with_pending_invoices
+api/v1/merchants/most_revenue
+api/v1/merchants/most_items
+api/v1/merchants/revenue
+api/v1/merchants/:id/revenue
+api/v1/merchants/:id/favorite_customer
+api/v1/merchants/:id/customers_with_pending_invoices
 
 'Item' Endpoints
 
-api/v1/items/index
-api/v1/items/show
-api/v1/customers/index
-api/v1/customers/show
-api/v1/most_revenue
-api/v1/most_items
-api/v1/:id/best_day
+api/v1/items
+api/v1/items/:id
+api/v1/items/most_revenue
+api/v1/items/most_items
+api/v1/items/:id/best_day
 
 'Customer' Endpoints
 
-api/v1/:id/favorite_merchant
+api/v1/customers
+api/v1/customers/:id
+api/v1/customers/:id/favorite_merchant
 ```
+### Blog
+If you're interested in some of the lessons I learned from this project, here's a [blog post](https://medium.com/@william.fischer42/misadventures-in-rest-ful-apis-fd42a4e76ba2) I wrote about it.
