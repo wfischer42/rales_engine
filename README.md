@@ -1,43 +1,56 @@
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/wfischer42/rales_engine.svg?columns=all)](https://waffle.io/wfischer42/rales_engine)
 
-Next Items
-GET /api/v1/items/most_revenue?quantity=x returns the top x items ranked by total revenue generated
-GET /api/v1/items/most_items?quantity=x returns the top x item instances ranked by total number sold
-GET /api/v1/items/:id/best_day returns the date with the most sales for the given item using the invoice date. If there are multiple days with equal number of sales, return the most recent day.
+# Rales Engine
+## Readme
+### Description
 
+This is a Rails API project from the Turing School of Software and Design meant to build the foundational skills for creating REST-ful API applications in Rails. The name 'Rales Engine' is an homage to an earlier project with a component called 'Sales Engine' which used the same data, but handled the functionality with plain Ruby instead of SQL.
+
+### Local Setup
+
+The project was created with `Rails 5.2` on macOS Mojave, and hasn't been tested on other platforms.
+
+To set it up and run it locally, first and clone. Run `bundle` from the command line to set up Gems, then run 'rake db:{create,migrate}' to initialize the database.
+
+The data is seeded using a custom Rake task `csvmodel:import["<CLASS NAMES>"]` that takes a list of model class names we're importing to as an argument. The models must be ordered so that each primary key is introduced before any foreign key can reference it.
+
+Use the following command to set it up for this project.
 ```
 rake csvmodel:import["Merchant Customer Invoice Item InvoiceItem Transaction"]
 ```
 
+After setup is complete, run `Rails s` to use the API endpoints locally.
+
+### Endpoints
+All endpoints descend from the `api/v1/` path. Here's a full path example
 ```
-Customer.where(id: Invoice.where("merchant_id = ?", mid)
-                          .left_outer_joins(:transactions)
-                          .group(:id)
-                          .having("sum(COALESCE(transactions.result,0)) = 0")
-                          .pluck("invoices.customer_id"))
+http://localhost:3000/api/v1/items/12/best_day
 ```
 
-# README
+The API provides the following endpoints
+```
+'Merchant' Endpoints
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+api/v1/merchants
+api/v1/merchants/:id
+api/v1/most_revenue
+api/v1/most_items
+api/v1/revenue
+api/v1/:id/revenue
+api/v1/:id/favorite_customer
+api/v1/:id/customers_with_pending_invoices
 
-Things you may want to cover:
+'Item' Endpoints
 
-* Ruby version
+api/v1/items/index
+api/v1/items/show
+api/v1/customers/index
+api/v1/customers/show
+api/v1/most_revenue
+api/v1/most_items
+api/v1/:id/best_day
 
-* System dependencies
+'Customer' Endpoints
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+api/v1/:id/favorite_merchant
+```
