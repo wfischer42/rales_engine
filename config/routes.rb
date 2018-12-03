@@ -1,17 +1,4 @@
 Rails.application.routes.draw do
-
-  namespace :api do
-    namespace :v1 do
-      get 'items/index'
-      get 'items/show'
-    end
-  end
-  namespace :api do
-    namespace :v1 do
-      get 'customers/index'
-      get 'customers/show'
-    end
-  end
   namespace :api do
     namespace :v1 do
       namespace :items do
@@ -32,6 +19,10 @@ Rails.application.routes.draw do
             to: 'customers_with_pending_invoices#index'
       end
       resources :merchants, only: [:index, :show]
+      get 'items/index'
+      get 'items/show'
+      get 'customers/index'
+      get 'customers/show'
     end
   end
 end
