@@ -87,10 +87,19 @@ class Merchant < ApplicationRecord
   end
 
   def self.customers_with_pending_invoices(merchant_id)
-    Customer.where(id: Invoice.where("merchant_id = ?", merchant_id)
-                              .left_outer_joins(:transactions)
-                              .group(:id)
-                              .having("sum(COALESCE(transactions.result,0)) = 0")
-                              .pluck("invoices.customer_id"))
+    include_query = Customer.select('customers.*, invoices.id AS invoice_id')
+                            .joins(:invoices)
+                            .where(invoices: {merchant_id: merchant_id})
+                            .to_sql
+
+    exclude_query = Customer.select('customers.*, invoices.id AS invoice_id')
+                            .joins(invoices: :transactions)
+                            .where(invoices: {merchant_id: merchant_id})
+                            .merge(Transaction.success)
+                            .group('customers.id, invoices.id')
+                            .having('invoices.id = MIN(invoices.id)')
+                            .to_sql
+
+    customer = Customer.find_by_sql(include_query + " EXCEPT " + exclude_query).uniq
   end
 end

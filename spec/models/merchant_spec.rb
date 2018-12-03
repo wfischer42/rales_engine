@@ -345,12 +345,10 @@ RSpec.describe Merchant, type: :model do
         create(:invoice_item, trans_result: :failed,
                               merchant: merchant,
                               customer: customers[1])
-        create(:invoice_item, trans_result: nil,
-                              merchant: merchant,
+        create(:invoice_item, merchant: merchant,
                               customer: customers[1])
 
         pending_cust = Merchant.customers_with_pending_invoices(merchant.id)
-
         expect(pending_cust).to eq([customers[1]])
       end
 
