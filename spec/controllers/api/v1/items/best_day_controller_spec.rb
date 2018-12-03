@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Api::V1::Customers::FavoriteMerchantController, type: :controller do
+RSpec.describe Api::V1::Items::BestDayController, type: :controller do
 
   describe "GET #show" do
     it "returns http success" do
@@ -9,17 +9,16 @@ RSpec.describe Api::V1::Customers::FavoriteMerchantController, type: :controller
     end
 
     it 'responds with JSON' do
-      merchant = build_stubbed(:merchant)
-      allow(Customer).to receive(:favorite_merchant)
-                         .with("1").and_return(merchant)
+      allow(Item).to receive(:best_day).with("1")
+                                       .and_return('2011-01-11T00:00:00.000Z')
 
       get :show, params: { id: 1 }
       parsed = JSON.parse(response.body)["data"]
-      expected = { "id"   => merchant.id,
-                   "name" => merchant.name }
+      expected = { "best_day" => '2011-01-11T00:00:00.000Z'}
 
       expect(response.header['Content-Type']).to include('application/json')
       expect(parsed["attributes"]).to include(expected)
     end
   end
+
 end

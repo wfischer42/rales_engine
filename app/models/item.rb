@@ -25,14 +25,15 @@ class Item < ApplicationRecord
   end
 
   def self.best_day(item_id)
-    Invoice.select("DATE_TRUNC('day', invoices.created_at) AS date,
-                    COUNT(invoices) AS sales")
-           .joins(:invoice_items)
-           .where(invoice_items: {item_id: item_id})
-           .group("DATE_TRUNC('day', invoices.created_at)")
-           .order("sales DESC")
-           .limit(1)
-           .last
-           .date
+    invoice = Invoice.select("DATE_TRUNC('day', invoices.created_at) AS date, COUNT(invoices) AS sales")
+                     .joins(:invoice_items)
+                     .joins(:transactions)
+                     .merge(Transaction.success)
+                     .where(invoice_items: {item_id: item_id})
+                     .group("DATE_TRUNC('day', invoices.created_at)")
+                     .order("sales DESC, date DESC")
+                     .limit(1)
+                     .last
+    return invoice.date if invoice
   end
 end

@@ -1,4 +1,4 @@
-class Api::V1::Customers::FavoriteMerchantsController < ApplicationController
+class Api::V1::Customers::FavoriteMerchantController < ApplicationController
   def show
     id = params["id"]
     favorite = Customer.favorite_merchant(id)

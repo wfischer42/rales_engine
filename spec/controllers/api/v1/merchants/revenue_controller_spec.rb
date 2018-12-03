@@ -16,7 +16,7 @@ RSpec.describe Api::V1::Merchants::RevenueController, type: :controller do
       parsed = JSON.parse(response.body)["data"]
 
       expect(response.header['Content-Type']).to include('application/json')
-      expect(parsed["revenue"]).to eq(12345.67)
+      expect(parsed["attributes"]["total_revenue"]).to eq("12345.67")
     end
   end
 
@@ -36,7 +36,7 @@ RSpec.describe Api::V1::Merchants::RevenueController, type: :controller do
         parsed = JSON.parse(response.body)["data"]
 
         expect(response.header['Content-Type']).to include('application/json')
-        expect(parsed["revenue"]).to eq(12345.67)
+        expect(parsed["attributes"]["revenue"]).to eq("12345.67")
       end
     end
     context 'without date parameter' do
@@ -54,7 +54,7 @@ RSpec.describe Api::V1::Merchants::RevenueController, type: :controller do
         parsed = JSON.parse(response.body)["data"]
 
         expect(response.header['Content-Type']).to include('application/json')
-        expect(parsed["revenue"]).to eq(12345.67)
+        expect(parsed["attributes"]["revenue"]).to eq("12345.67")
       end
     end
   end

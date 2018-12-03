@@ -1,7 +1,7 @@
 class Api::V1::Merchants::RevenueController < ApplicationController
   def index
     date = params["date"]
-    render json: serialize_currency("revenue", Merchant.revenue_on_date(date))
+    render json: serialize_currency("total_revenue", Merchant.revenue_on_date(date))
   end
 
   def show
