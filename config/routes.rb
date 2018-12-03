@@ -2,6 +2,18 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      get 'items/index'
+      get 'items/show'
+    end
+  end
+  namespace :api do
+    namespace :v1 do
+      get 'customers/index'
+      get 'customers/show'
+    end
+  end
+  namespace :api do
+    namespace :v1 do
       namespace :items do
         get 'most_revenue', to: 'most_revenue#index'
         get 'most_items', to: 'most_items#index'
